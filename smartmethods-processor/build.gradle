@@ -1,0 +1,75 @@
+apply plugin: 'java-library'
+apply plugin: 'com.novoda.build-properties'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+buildProperties {
+    secrets {
+        using project.file('secrets.properties')
+    }
+}
+
+// custom tasks for creating source/javadoc jars
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+// add javadoc/source jar tasks as artifacts
+artifacts {
+    archives sourcesJar, javadocJar
+}
+
+group = 'com.yanchyshyn'
+version = '1.0.0'
+archivesBaseName = 'smartmethods-processor'
+def bintrayUser = buildProperties.secrets['bintrayUser'].string
+def bintrayApiKey = buildProperties.secrets['bintrayApiKey'].string
+def lib_version = version
+
+bintray {
+    user = bintrayUser
+    key = bintrayApiKey
+    configurations = ['archives']
+
+    pkg {
+        repo = 'smartmethods'
+        name = archivesBaseName
+        desc = project.description
+        websiteUrl = 'http://yanchyshynh.com'
+        userOrg = bintrayUser
+        licenses = ['MIT']
+        vcsUrl = 'https://github.com/ryanchyshyn/smartmethods'
+        publish = true
+
+        version {
+            name = lib_version
+            desc = 'Initial release'
+            released  = new Date()
+            vcsTag = lib_version
+        }
+    }
+}
+
+
+repositories {
+    maven {
+        url "https://dl.bintray.com/ryanchyshyn/smartmethods/"
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.google.guava:guava:21.0'
+    implementation 'com.squareup:javapoet:1.8.0'
+    //implementation project(':smartmethods-annotation')
+    implementation 'com.yanchyshyn:smartmethods-annotation:1.0.0'
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
