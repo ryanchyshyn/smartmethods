@@ -60,7 +60,7 @@ public class MyClass {
 Unfortunately as you see **doSomeWork** object declaration is a bit fancy. Also it requires you to correctly call your target method inside **MethodDelegate**.
 
 #### Java 1.8
-Hopefully if you target Java 1.8 you can simplify this to the following:
+Hopefully if you target Java 1.8 you can simplify Smart Method declaration to the following:
 ```Java
 public class MyClass18 {
 	private final MyClass_DoSomeWork doSomeWork = new MyClass_DoSomeWork(this::doSomeWork);
@@ -77,8 +77,7 @@ public class MyClass18 {
 }
 ```
 
-Of cource there is no much sense to use Smart Methods for methods with only one parameter.
-But using it on methods with multiple parameters can significantly improve code quality:
+Of cource there is no much sense to use Smart Methods for methods with only one parameter. But using it on methods with multiple parameters can significantly improve code quality:
 ```Java
 public class MyFragment extends Fragment {
 	private final MyFragment_DoSomeWork doSomeWork = new MyFragment_DoSomeWork(this::doSomeWork);
@@ -137,4 +136,4 @@ class MyClassKotlin {
 }
 ```
 
-Note that SmartMethod object in thios case is named **doSomeWorkSM**. This is because Kotlin does not allow to create objects with the same name as existing methods. Of course you can rename it to anything else.
+Note that SmartMethod object in this case is named **doSomeWorkSM**. This is because Kotlin does not allows to create objects with the same name as existing methods. Of course you can rename it to anything else.
