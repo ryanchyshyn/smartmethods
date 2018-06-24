@@ -1,1 +1,1 @@
-include ':smartmethods-annotation', ':smartmethods-processor'
+include ':smartmethods-annotation', ':smartmethods-processor', ':smartmethods-test'

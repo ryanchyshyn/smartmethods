@@ -1,0 +1,56 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
+
+repositories {
+    maven {
+        url "https://dl.bintray.com/ryanchyshyn/smartmethods/"
+    }
+    maven {
+        url "https://jitpack.io"
+    }
+    mavenCentral()
+}
+
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        applicationId "com.yanchyshyn.smartmethodstest"
+        minSdkVersion 21
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'com.github.instacart.truetime-android:library:3.3'
+    implementation 'com.github.kittinunf.result:result:1.4.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    //implementation project(':smartmethods-annotation')
+    implementation 'com.yanchyshyn:smartmethods-annotation:1.0.0'
+    //testImplementation project(':smartmethods-annotation')
+    testImplementation 'com.yanchyshyn:smartmethods-annotation:1.0.0'
+    //testAnnotationProcessor project(':smartmethods-processor')
+    //testAnnotationProcessor 'com.yanchyshyn:smartmethods-processor:1.0.0'
+    kaptTest 'com.yanchyshyn:smartmethods-processor:1.0.0'
+    //annotationProcessor project(':smartmethods-processor')
+    kapt 'com.yanchyshyn:smartmethods-processor:1.0.0'
+}
