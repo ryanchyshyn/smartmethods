@@ -137,3 +137,88 @@ class MyClassKotlin {
 ```
 
 Note that SmartMethod object in this case is named **doSomeWorkSM**. This is because Kotlin does not allows to create objects with the same name as existing methods. Of course you can rename it to anything else.
+
+## Documentation
+### Annotation parameters:
+```Java
+boolean oneShot() default false;
+boolean threadSafe() default false;
+boolean enabled() default true;
+boolean debug() default false;
+String customClassName() default "";
+String customPackageName() default "";
+```
+* oneShot - if `true` all parameters will be cleared after method calling
+* threadSafe - `true` makes all methods thread safe
+* enabled - initial `enabled` state of Smart Method object
+* debug - initial `debug` state of Smart Method object
+* customClassName - custom class name. If not specified the class name is constructed in form `OuterClass_MethodName`
+* customPackageName - custom package name. If not specified the package name is the same as outer class name
+
+### Smart Method class methods:
+```Java
+/**
+ * Get 'enabled' state.
+ * @return 'enabled' value. */
+boolean isEnabled();
+
+/**
+ * Set 'enabled' state.
+ * @param enabled new value.
+ * @return new state. */
+boolean setEnabled(boolean enabled);
+
+/**
+ * Get 'debug' state.
+ * @return 'debug' value. */
+boolean isDebug();
+
+/**
+ * Set 'debug' state.
+ * @param debug new value.
+ * @return new state. */
+boolean setDebug(boolean debug);
+
+/**
+ * Call method if all parameters are set.
+ * @return true when method was called. */
+boolean fire();
+
+/**
+ * Check whether all parameters are set.
+ * @return true when all parameters are set. */
+boolean areParametersSet();
+
+/**
+ * Clear all parameter. */
+void clear();
+
+
+/**
+ * Get Xxx parameter.
+ * @return Xxx value. */
+T getXxx();
+
+/**
+ * Set Xxx parameter.
+ * @param Xxx method parameter.
+ * @return true when the method was fired. */
+boolean setXxx(T Xxx);
+
+/**
+ * Set Xxx parameter but don't call the method.
+ * @param Xxx method parameter.
+ * @return new value. */
+T assignXxx(T Xxx);
+
+/**
+ * Check whether Xxx parameter is set.
+ * @return true when parameter is set. */
+boolean isXxxSet();
+
+/**
+ * Clear Xxx parameter. */
+void clearXxx();
+```
+
+`getXxx, setXxx, assignXxx, isXxxSet, clearXxx` methods corresponds fo `Xxx` parameter. Every Smart Method parameter has such set of methods.
