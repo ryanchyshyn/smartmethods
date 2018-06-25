@@ -41,7 +41,7 @@ bintray {
         repo = 'smartmethods'
         name = archivesBaseName
         desc = project.description
-        websiteUrl = 'http://yanchyshynh.com'
+        websiteUrl = 'http://yanchyshyn.com'
         userOrg = bintrayUser
         licenses = ['MIT']
         vcsUrl = 'https://github.com/ryanchyshyn/smartmethods'
