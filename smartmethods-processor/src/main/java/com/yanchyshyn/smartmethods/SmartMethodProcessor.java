@@ -285,7 +285,7 @@ public class SmartMethodProcessor extends AbstractProcessor {
 	private static MethodSpec getFire(boolean threadSafe, boolean oneShot, List<ParameterSpec> methodParameters) {
 		MethodSpec ret = MethodSpec
 				.methodBuilder("fire")
-				.addJavadoc("Call method is all parameters are set.\n")
+				.addJavadoc("Call method if all parameters are set.\n")
 				.addJavadoc("@return true when method was called.")
 				.addModifiers(Modifier.PUBLIC)
 				.returns(Boolean.TYPE)
