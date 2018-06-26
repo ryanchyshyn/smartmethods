@@ -32,7 +32,7 @@ public class MyClass {
 ```
 
 #### Java 1.7
-Once you build your project a SmartMethod class on current package with the name **MyClass_DoSomeWork** will be auto-generated.
+Once you build your project a Smart Method class on current package with the name **MyClass_DoSomeWork** will be auto-generated.
 You can use it in the following way:
 ```Java
 public class MyClass {
@@ -75,7 +75,7 @@ public class MyClass18 {
 }
 ```
 
-Of course there is no much sense to declare SmartMethods for methods with only one parameter. But using it on methods with multiple parameters can significantly improve code quality:
+Of course there is no much sense to declare Smart Methods for methods with only one parameter. But using it on methods with multiple parameters can significantly improve code quality:
 ```Java
 public class MyFragment extends Fragment {
 	private final MyFragment_DoSomeWork doSomeWork = new MyFragment_DoSomeWork(this::doSomeWork);
@@ -102,7 +102,7 @@ public class MyFragment extends Fragment {
 ### Kotlin
 Of course you can use it with Kotlin.
 
-Firstly modify you module **build.gradle** file:
+Firstly modify your module **build.gradle** file:
 ```Groovy
 apply plugin: 'kotlin-kapt'
 
@@ -132,7 +132,7 @@ class MyClassKotlin {
 }
 ```
 
-Note that SmartMethod object in this case is named **doSomeWorkSM**. This is because Kotlin does not allows to create objects with the same name as existing methods. Of course you can rename it to anything else.
+Note that Smart Method object in this case is named **doSomeWorkSM**. This is because Kotlin does not allows to create objects with the same name as existing methods. Of course you can rename it to anything else.
 
 ### Better sample
 
