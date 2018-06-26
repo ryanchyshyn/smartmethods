@@ -55,10 +55,10 @@ public class MyClass {
 }
 ```
 
-Unfortunately as you see **doSomeWork** object declaration is a bit fancy. Also it requires you to correctly call your target method inside **MethodDelegate**.
+As you see **doSomeWork** object declaration is a bit fancy. Also it requires you to correctly call your target method inside **MethodDelegate**.
 
 #### Java 1.8
-Hopefully if you target Java 1.8 you can simplify Smart Method declaration to the following:
+Hopefully if you target Java 1.8 you can simplify Smart Method declaration:
 ```Java
 public class MyClass18 {
 	private final MyClass_DoSomeWork doSomeWork = new MyClass_DoSomeWork(this::doSomeWork);
@@ -75,7 +75,7 @@ public class MyClass18 {
 }
 ```
 
-Of cource there is no much sense to use Smart Methods for methods with only one parameter. But using it on methods with multiple parameters can significantly improve code quality:
+Of cource there is no much sense to declare SmartMethods for methods with only one parameter. But using it on methods with multiple parameters can significantly improve code quality:
 ```Java
 public class MyFragment extends Fragment {
 	private final MyFragment_DoSomeWork doSomeWork = new MyFragment_DoSomeWork(this::doSomeWork);
