@@ -5,11 +5,9 @@ apply plugin: 'kotlin-android-extensions'
 
 repositories {
     maven {
-        url "https://dl.bintray.com/ryanchyshyn/smartmethods/"
-    }
-    maven {
         url "https://jitpack.io"
     }
+    jcenter()
     mavenCentral()
 }
 
