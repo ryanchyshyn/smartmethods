@@ -58,9 +58,7 @@ bintray {
 
 
 repositories {
-    maven {
-        url "https://dl.bintray.com/ryanchyshyn/smartmethods/"
-    }
+    jcenter()
 }
 
 dependencies {
