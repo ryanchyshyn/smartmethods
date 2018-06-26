@@ -75,7 +75,7 @@ public class MyClass18 {
 }
 ```
 
-Of cource there is no much sense to declare SmartMethods for methods with only one parameter. But using it on methods with multiple parameters can significantly improve code quality:
+Of course there is no much sense to declare SmartMethods for methods with only one parameter. But using it on methods with multiple parameters can significantly improve code quality:
 ```Java
 public class MyFragment extends Fragment {
 	private final MyFragment_DoSomeWork doSomeWork = new MyFragment_DoSomeWork(this::doSomeWork);
