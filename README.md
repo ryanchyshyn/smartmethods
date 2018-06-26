@@ -8,9 +8,7 @@ Smart Method is an object that holds method reference altogether with its parame
 Modify you module **build.gradle** file:
 ```Groovy
 repositories {
-    maven {
-        url "https://dl.bintray.com/ryanchyshyn/smartmethods/"
-    }
+    jcenter()
 }
 
 dependencies {
@@ -109,9 +107,7 @@ Firstly modify you module **build.gradle** file:
 apply plugin: 'kotlin-kapt'
 
 repositories {
-    maven {
-        url "https://dl.bintray.com/ryanchyshyn/smartmethods/"
-    }
+    jcenter()
 }
 
 dependencies {
