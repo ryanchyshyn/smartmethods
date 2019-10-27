@@ -48,7 +48,10 @@ dependencies {
     testImplementation 'com.yanchyshyn:smartmethods-annotation:1.0.0'
     //testAnnotationProcessor project(':smartmethods-processor')
     //testAnnotationProcessor 'com.yanchyshyn:smartmethods-processor:1.0.0'
-    kaptTest 'com.yanchyshyn:smartmethods-processor:1.0.0'
     //annotationProcessor project(':smartmethods-processor')
-    kapt 'com.yanchyshyn:smartmethods-processor:1.0.0'
+
+    //kaptTest 'com.yanchyshyn:smartmethods-processor:1.0.0'
+    kaptTest project(':smartmethods-processor')
+    //kapt 'com.yanchyshyn:smartmethods-processor:1.0.0'
+    kapt project(':smartmethods-processor')
 }

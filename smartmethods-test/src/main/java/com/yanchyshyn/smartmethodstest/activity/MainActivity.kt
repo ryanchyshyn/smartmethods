@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
 	}
 
 	@SmartMethod
-	private fun speakTime(tts: TextToSpeech, date: Date) {
+	fun speakTime(tts: TextToSpeech, date: Date) {
 		tts.speak(date.toString(), TextToSpeech.QUEUE_FLUSH, null, "")
 	}
 
@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 		if ((tts != null) || speakTimeSmartMethod.isTtsSet) return
 
 		tts = TextToSpeech(this, TextToSpeech.OnInitListener { status: Int ->
-			if (status == TextToSpeech.SUCCESS) speakTimeSmartMethod.tts = tts
+			if (status == TextToSpeech.SUCCESS) speakTimeSmartMethod.tts = tts!!
 			else Toast.makeText(this@MainActivity, "Failed to init TTS. Status code: $status", Toast.LENGTH_SHORT).show()
 			tts = null
 		})
@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
 						{ value -> txtTime.text = "Time: $value"},
 						{ error -> txtTime.text = "Failed to get time. Error: $error" })
 
-				speakTimeSmartMethod.date = result.component1()
+				speakTimeSmartMethod.date = result.get()
 			}
 		}
 		getTimeAsyncTask?.execute()
