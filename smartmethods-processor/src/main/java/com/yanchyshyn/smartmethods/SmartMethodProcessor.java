@@ -198,16 +198,6 @@ public class SmartMethodProcessor extends AbstractProcessor {
 		return getter;
 	}
 
-	private static boolean isNullableParameterSpec(ParameterSpec ps) {
-		for (AnnotationSpec ann : ps.annotations) {
-			if (ann.type.toString().equals(Nullable.class.getCanonicalName())) return true;
-			if (ann.type.toString().equals(org.jetbrains.annotations.Nullable.class.getCanonicalName())) return true;
-			if (ann.type.toString().equals(NonNull.class.getCanonicalName())) return false;
-			if (ann.type.toString().equals(NotNull.class.getCanonicalName())) return false;
-		}
-		return true;
-	}
-
 	private static MethodSpec getPropertySetter(boolean threadSafe, ParameterSpec ps) {
 		MethodSpec.Builder setterBuilder = MethodSpec
 				.methodBuilder("set" + capitalize(ps.name))
@@ -218,50 +208,14 @@ public class SmartMethodProcessor extends AbstractProcessor {
 				.returns(Boolean.TYPE)
 				.addParameter(ps);
 
-		if (ps.type.isPrimitive()) {
-			setterBuilder
-					.beginControlFlow(threadSafe ? "synchronized(this)" : "")
-					.addStatement("if (!enabled) return false")
-					.addStatement("if (isDebug()) System.err.println(\"set$N: \" + $N)", capitalize(ps.name), ps.name)
-					.addStatement("this.$N = $N", ps.name, ps.name)
-					.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "true")
-					.endControlFlow()
-					.addStatement("if (debug) System.err.println(\"set$N: \" + $N)", capitalize(ps.name), ps.name)
-					.addStatement("return fire()");
-		}
-		else {
-			boolean isNullable = isNullableParameterSpec(ps);
-			if (isNullable) {
-				setterBuilder
-						.beginControlFlow("if ($N == null)", ps.name)
-						.beginControlFlow(threadSafe ? "synchronized(this)" : "")
-						.addStatement("if (!enabled) return false")
-						.addStatement("this.$N = $N", ps.name, getTypeDefaultValue(ps.type))
-						.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "false")
-						.addStatement("if (isDebug()) System.err.println(\"set$N: \" + $N)", capitalize(ps.name), ps.name)
-						.addStatement("return false")
-						.endControlFlow()
-						.endControlFlow()
-						.beginControlFlow("else")
-						.beginControlFlow(threadSafe ? "synchronized(this)" : "")
-						.addStatement("if (!enabled) return false")
-						.addStatement("this.$N = $N", ps.name, ps.name)
-						.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "true")
-						.addStatement("if (isDebug()) System.err.println(\"set$N: \" + $N)", capitalize(ps.name), ps.name)
-						.endControlFlow()
-						.addStatement("return fire()")
-						.endControlFlow();
-			}
-			else {
-				setterBuilder
-						.beginControlFlow(threadSafe ? "synchronized(this)" : "")
-						.addStatement("if (!enabled) return false")
-						.addStatement("this.$N = $N", ps.name, ps.name)
-						.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "true")
-						.endControlFlow()
-						.addStatement("return fire()");
-			}
-		}
+		setterBuilder
+				.beginControlFlow(threadSafe ? "synchronized(this)" : "")
+				.addStatement("if (!enabled) return false")
+				.addStatement("this.$N = $N", ps.name, ps.name)
+				.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "true")
+				.addStatement("if (isDebug()) System.err.println(\"set$N: \" + $N)", capitalize(ps.name), ps.name)
+				.endControlFlow()
+				.addStatement("return fire()");
 
 		return setterBuilder.build();
 	}
