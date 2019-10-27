@@ -237,7 +237,7 @@ public class SmartMethodProcessor extends AbstractProcessor {
 						.beginControlFlow(threadSafe ? "synchronized(this)" : "")
 						.addStatement("if (!enabled) return false")
 						.addStatement("this.$N = $N", ps.name, getTypeDefaultValue(ps.type))
-						.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "false")
+						.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "true")
 						.addStatement("if (isDebug()) System.err.println(\"set$N: \" + $N)", capitalize(ps.name), ps.name)
 						.addStatement("return false")
 						.endControlFlow()
