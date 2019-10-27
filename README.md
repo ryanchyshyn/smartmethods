@@ -32,7 +32,7 @@ public class MyClass {
 ```
 
 #### Java 1.7
-Once you build your project a SmartMethod class on current package with the name **MyClass_DoSomeWork** will be auto-generated.
+Once you build your project a Smart Method class on current package with the name **MyClass_DoSomeWork** will be auto-generated.
 You can use it in the following way:
 ```Java
 public class MyClass {
@@ -75,7 +75,7 @@ public class MyClass18 {
 }
 ```
 
-Of cource there is no much sense to declare SmartMethods for methods with only one parameter. But using it on methods with multiple parameters can significantly improve code quality:
+Of course there is no much sense to declare Smart Methods for methods with only one parameter. But using it on methods with multiple parameters can significantly improve code quality:
 ```Java
 public class MyFragment extends Fragment {
 	private final MyFragment_DoSomeWork doSomeWork = new MyFragment_DoSomeWork(this::doSomeWork);
@@ -102,7 +102,7 @@ public class MyFragment extends Fragment {
 ### Kotlin
 Of course you can use it with Kotlin.
 
-Firstly modify you module **build.gradle** file:
+Firstly modify your module **build.gradle** file:
 ```Groovy
 apply plugin: 'kotlin-kapt'
 
@@ -132,7 +132,84 @@ class MyClassKotlin {
 }
 ```
 
-Note that SmartMethod object in this case is named **doSomeWorkSM**. This is because Kotlin does not allows to create objects with the same name as existing methods. Of course you can rename it to anything else.
+Note that Smart Method object in this case is named **doSomeWorkSM**. This is because Kotlin does not allows to create objects with the same name as existing methods. Of course you can rename it to anything else.
+
+### Better sample
+
+Here is the sample of Android Activity that has one button. Clicking on it will send NTP request to get current time and once the response is received, pronounce it using standard Android TTS engine.
+
+<details><summary>Code</summary>
+<p>
+
+```Kotlin
+class MainActivity : AppCompatActivity() {
+
+	// region Smart Methods
+	private val speakTimeSmartMethod = MainActivity_SpeakTime(this::speakTime)
+	// endregion
+
+	// this field gets non null value only for period of service connection
+	private var tts: TextToSpeech? = null
+	private var getTimeAsyncTask: GetTimeAsyncTask? = null
+
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		setContentView(R.layout.activity_main)
+
+		btnGetTime.setOnClickListener {
+			initTts()
+			getTime()
+		}
+	}
+
+	override fun onDestroy() {
+		tts?.shutdown()
+
+		speakTimeSmartMethod.isEnabled = false
+		speakTimeSmartMethod.tts?.shutdown()
+		speakTimeSmartMethod.clear()
+
+		getTimeAsyncTask?.cancel(true)
+
+		super.onDestroy()
+	}
+
+	@SmartMethod
+	private fun speakTime(tts: TextToSpeech, date: Date) {
+		tts.speak(date.toString(), TextToSpeech.QUEUE_FLUSH, null, "")
+	}
+
+	private fun initTts() {
+		if ((tts != null) || speakTimeSmartMethod.isTtsSet) return
+
+		tts = TextToSpeech(this, TextToSpeech.OnInitListener { status: Int ->
+			if (status == TextToSpeech.SUCCESS) speakTimeSmartMethod.tts = tts
+			else Toast.makeText(this@MainActivity, "Failed to init TTS. Status code: $status", Toast.LENGTH_SHORT).show()
+			tts = null
+		})
+	}
+
+	private fun getTime() {
+		if (getTimeAsyncTask != null) return
+
+		getTimeAsyncTask = object: GetTimeAsyncTask() {
+			override fun onPostExecute(result: Result<Date, Exception>) {
+				getTimeAsyncTask = null
+
+				result.fold(
+						{ value -> txtTime.text = "Time: $value"},
+						{ error -> txtTime.text = "Failed to get time. Error: $error" })
+
+				speakTimeSmartMethod.date = result.component1()
+			}
+		}
+		getTimeAsyncTask?.execute()
+	}
+}
+```
+
+</p>
+</details>
 
 ## Documentation
 ### Annotation parameters:

@@ -1,10 +1,13 @@
 package com.yanchyshyn.smartmethods;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import com.google.common.base.Defaults;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Primitives;
 import com.squareup.javapoet.*;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -13,6 +16,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -82,12 +86,12 @@ public class SmartMethodProcessor extends AbstractProcessor {
 					.interfaceBuilder("MethodDelegate")
 					.addModifiers(Modifier.PUBLIC);
 
-			MethodSpec callMethod = MethodSpec
+			MethodSpec.Builder callMethod = MethodSpec
 					.methodBuilder("call")
 					.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-					.addParameters(methodParameters)
-					.build();
-			methodDelegateClassBuilder.addMethod(callMethod);
+					.addParameters(methodParameters);
+
+			methodDelegateClassBuilder.addMethod(callMethod.build());
 
 			TypeSpec methodDelegateClass = methodDelegateClassBuilder.build();
 
@@ -111,7 +115,9 @@ public class SmartMethodProcessor extends AbstractProcessor {
 
 			// smart method parameters fields
 			for (ParameterSpec ps : methodParameters) {
-				smartMethodClassBuilder.addField(ps.type, ps.name, Modifier.PRIVATE);
+				FieldSpec.Builder fieldSpecBuilder = FieldSpec.builder(ps.type, ps.name, Modifier.PRIVATE)
+						.addAnnotations(ps.annotations);
+				smartMethodClassBuilder.addField(fieldSpecBuilder.build());
 				smartMethodClassBuilder.addField(Boolean.TYPE, ps.name + IS_SET_SUFFIX, Modifier.PRIVATE);
 			}
 
@@ -182,6 +188,7 @@ public class SmartMethodProcessor extends AbstractProcessor {
 				.addJavadoc("Get $N parameter.\n", ps.name)
 				.addJavadoc("@return $N value.", ps.name)
 				.addModifiers(Modifier.PUBLIC)
+				.addAnnotations(ps.annotations)
 				.returns(ps.type)
 				.beginControlFlow(threadSafe ? "synchronized(this)" : "")
 				.addStatement("return $N", ps.name)
@@ -189,6 +196,16 @@ public class SmartMethodProcessor extends AbstractProcessor {
 				.build();
 
 		return getter;
+	}
+
+	private static boolean isNullableParameterSpec(ParameterSpec ps) {
+		for (AnnotationSpec ann : ps.annotations) {
+			if (ann.type.toString().equals(Nullable.class.getCanonicalName())) return true;
+			if (ann.type.toString().equals(org.jetbrains.annotations.Nullable.class.getCanonicalName())) return true;
+			if (ann.type.toString().equals(NonNull.class.getCanonicalName())) return false;
+			if (ann.type.toString().equals(NotNull.class.getCanonicalName())) return false;
+		}
+		return true;
 	}
 
 	private static MethodSpec getPropertySetter(boolean threadSafe, ParameterSpec ps) {
@@ -199,12 +216,13 @@ public class SmartMethodProcessor extends AbstractProcessor {
 				.addJavadoc("@return true when the method was fired.")
 				.addModifiers(Modifier.PUBLIC)
 				.returns(Boolean.TYPE)
-				.addParameter(ps.type, ps.name);
+				.addParameter(ps);
 
 		if (ps.type.isPrimitive()) {
 			setterBuilder
 					.beginControlFlow(threadSafe ? "synchronized(this)" : "")
 					.addStatement("if (!enabled) return false")
+					.addStatement("if (isDebug()) System.err.println(\"set$N: \" + $N)", capitalize(ps.name), ps.name)
 					.addStatement("this.$N = $N", ps.name, ps.name)
 					.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "true")
 					.endControlFlow()
@@ -212,20 +230,37 @@ public class SmartMethodProcessor extends AbstractProcessor {
 					.addStatement("return fire()");
 		}
 		else {
-			setterBuilder
-					.beginControlFlow("if ($N == null)", ps.name)
-					.addStatement("clear()")
-					.addStatement("return false")
-					.endControlFlow()
-					.beginControlFlow("else")
-					.beginControlFlow(threadSafe ? "synchronized(this)" : "")
-					.addStatement("if (!enabled) return false")
-					.addStatement("this.$N = $N", ps.name, ps.name)
-					.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "true")
-					.endControlFlow()
-					.addStatement("if (debug) System.err.println(\"set$N: \" + $N)", capitalize(ps.name), ps.name)
-					.addStatement("return fire()")
-					.endControlFlow();
+			boolean isNullable = isNullableParameterSpec(ps);
+			if (isNullable) {
+				setterBuilder
+						.beginControlFlow("if ($N == null)", ps.name)
+						.beginControlFlow(threadSafe ? "synchronized(this)" : "")
+						.addStatement("if (!enabled) return false")
+						.addStatement("this.$N = $N", ps.name, getTypeDefaultValue(ps.type))
+						.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "false")
+						.addStatement("if (isDebug()) System.err.println(\"set$N: \" + $N)", capitalize(ps.name), ps.name)
+						.addStatement("return false")
+						.endControlFlow()
+						.endControlFlow()
+						.beginControlFlow("else")
+						.beginControlFlow(threadSafe ? "synchronized(this)" : "")
+						.addStatement("if (!enabled) return false")
+						.addStatement("this.$N = $N", ps.name, ps.name)
+						.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "true")
+						.addStatement("if (isDebug()) System.err.println(\"set$N: \" + $N)", capitalize(ps.name), ps.name)
+						.endControlFlow()
+						.addStatement("return fire()")
+						.endControlFlow();
+			}
+			else {
+				setterBuilder
+						.beginControlFlow(threadSafe ? "synchronized(this)" : "")
+						.addStatement("if (!enabled) return false")
+						.addStatement("this.$N = $N", ps.name, ps.name)
+						.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "true")
+						.endControlFlow()
+						.addStatement("return fire()");
+			}
 		}
 
 		return setterBuilder.build();
@@ -238,14 +273,15 @@ public class SmartMethodProcessor extends AbstractProcessor {
 				.addJavadoc("@param $N method parameter.\n", ps.name)
 				.addJavadoc("@return new value.")
 				.addModifiers(Modifier.PUBLIC)
+				.addAnnotations(ps.annotations)
 				.returns(ps.type)
-				.addParameter(ps.type, ps.name)
+				.addParameter(ps)
 				.beginControlFlow(threadSafe ? "synchronized(this)" : "")
 				.addStatement("if (!enabled) return $N", ps.name)
 				.addStatement("this.$N = $N", ps.name, ps.name)
 				.addStatement("this.$N = $N", ps.name + IS_SET_SUFFIX, "true")
+				.addStatement("if (isDebug()) System.err.println(\"assign$N: \" + $N)", capitalize(ps.name), ps.name)
 				.endControlFlow()
-				.addStatement("if (debug) System.err.println(\"assign$N: \" + $N)", capitalize(ps.name), ps.name)
 				.addStatement("return $N", ps.name);
 
 		return ret.build();
@@ -275,8 +311,8 @@ public class SmartMethodProcessor extends AbstractProcessor {
 				.addStatement("if (!enabled) return")
 				.addStatement("$N = $N", ps.name, getTypeDefaultValue(ps.type))
 				.addStatement("$N = $N", ps.name + IS_SET_SUFFIX, "false")
+				.addStatement("if (isDebug()) System.err.println(\"clear$N\")", capitalize(ps.name))
 				.endControlFlow()
-				.addStatement("if (debug) System.err.println(\"clear$N\")", capitalize(ps.name))
 				.build();
 
 		return clear;
@@ -295,9 +331,9 @@ public class SmartMethodProcessor extends AbstractProcessor {
 				.addStatement(getFieldsCopyStatement(methodParameters))
 				.endControlFlow()
 				.beginControlFlow(getIfStatement(methodParameters))
-				.addStatement("if (debug) System.err.println(\"firing method\")")
-				.addStatement(getCallDelegateStatement(methodParameters))
+				.addStatement("if (isDebug()) System.err.println(\"firing method\")")
 				.addStatement(oneShot ? "clear()" : "")
+				.addStatement(getCallDelegateStatement(methodParameters))
 				.addStatement("return true")
 				.endControlFlow()
 				.addStatement("return false")
@@ -332,8 +368,8 @@ public class SmartMethodProcessor extends AbstractProcessor {
 		for (String statement : getResetStatements(methodParameters))
 			ret.addStatement(statement);
 
+		ret.addStatement("if (isDebug()) System.err.println(\"clear\")");
 		ret.endControlFlow();
-		ret.addStatement("if (debug) System.err.println(\"clear\")");
 
 		return ret.build();
 	}
@@ -362,10 +398,10 @@ public class SmartMethodProcessor extends AbstractProcessor {
 				.addModifiers(Modifier.PUBLIC)
 				.returns(Boolean.TYPE)
 				.addParameter(Boolean.TYPE, "enabled")
+				.addStatement("if (isDebug()) System.err.println(\"setEnabled: \" + enabled)")
 				.beginControlFlow(threadSafe ? "synchronized(this)" : "")
 				.addStatement("this.enabled = enabled")
 				.endControlFlow()
-				.addStatement("if (debug) System.err.println(\"setEnabled: \" + enabled)")
 				.addStatement("return enabled")
 				.build();
 
@@ -412,8 +448,29 @@ public class SmartMethodProcessor extends AbstractProcessor {
 		List<ParameterSpec> ret = new ArrayList<>(method.getParameters().size());
 
 		for (VariableElement varEl : method.getParameters()) {
-			ParameterSpec ps = ParameterSpec.builder(TypeName.get(varEl.asType()), varEl.getSimpleName().toString()).build();
-			ret.add(ps);
+			ParameterSpec.Builder ps = ParameterSpec.builder(TypeName.get(varEl.asType()), varEl.getSimpleName().toString());
+
+			Annotation supportNullableAnnot = varEl.getAnnotation(Nullable.class);
+			if (supportNullableAnnot != null) {
+				ps.addAnnotation(Nullable.class);
+			}
+
+			Annotation jetbrainsNullableAnnot = varEl.getAnnotation(org.jetbrains.annotations.Nullable.class);
+			if (jetbrainsNullableAnnot != null) {
+				ps.addAnnotation(org.jetbrains.annotations.Nullable.class);
+			}
+
+			Annotation supportNonNullAnnot = varEl.getAnnotation(NonNull.class);
+			if (supportNonNullAnnot != null) {
+				ps.addAnnotation(NonNull.class);
+			}
+
+			Annotation jetbrainsNotNullAnnot = varEl.getAnnotation(NotNull.class);
+			if (jetbrainsNotNullAnnot != null) {
+				ps.addAnnotation(NotNull.class);
+			}
+
+			ret.add(ps.build());
 		}
 
 		return ret;
