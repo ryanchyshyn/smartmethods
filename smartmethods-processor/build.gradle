@@ -26,7 +26,7 @@ artifacts {
 }
 
 group = 'com.yanchyshyn'
-version = '1.0.0'
+version = '1.1.0'
 archivesBaseName = 'smartmethods-processor'
 def bintrayUser = buildProperties.secrets['bintrayUser'].string
 def bintrayApiKey = buildProperties.secrets['bintrayApiKey'].string
@@ -49,7 +49,7 @@ bintray {
 
         version {
             name = lib_version
-            desc = 'Initial release'
+            desc = 'Nullability support added'
             released  = new Date()
             vcsTag = lib_version
         }
@@ -67,6 +67,8 @@ dependencies {
     implementation 'com.squareup:javapoet:1.8.0'
     //implementation project(':smartmethods-annotation')
     implementation 'com.yanchyshyn:smartmethods-annotation:1.0.0'
+    implementation group: 'com.android.support', name: 'support-annotations', version: '27.1.1'
+    implementation group: 'org.jetbrains', name: 'annotations', version: '17.0.0'
 }
 
 sourceCompatibility = "1.7"
